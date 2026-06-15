@@ -2,7 +2,7 @@
 venv/
 __pycache__/
 *.pyc
-memory/
+/memory/
 outputs/
 .streamlit/
 debug_test.py
