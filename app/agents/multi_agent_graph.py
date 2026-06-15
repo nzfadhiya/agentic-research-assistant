@@ -9,7 +9,7 @@ sys.path.insert(0, '.')
 from app.config import GROQ_API_KEY, GROQ_MODEL
 from app.memory.database import init_db, save_research, search_history
 
-MCP_URL = "http://127.0.0.1:8001"
+MCP_URL = "http://127.0.0.1:8000/mcp"
 llm = ChatGroq(api_key=GROQ_API_KEY, model=GROQ_MODEL)
 
 # ── State ─────────────────────────────────────────────────────

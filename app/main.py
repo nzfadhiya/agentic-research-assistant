@@ -1,5 +1,5 @@
-from fastapi import FastAPI, HTTPException, Depends
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi import FastAPI, HTTPException, Depends, Request, UploadFile, File, Form
+from fastapi.responses import FileResponse, StreamingResponse, JSONResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from typing import Optional
@@ -18,7 +18,6 @@ from app.memory.database import (
     get_cache_stats,save_research
 )
 from app.tools.doc_reader import extract_text
-from fastapi import UploadFile, File, Form
 from app.tools.doc_generator import create_pdf, create_docx
 from app.agents.chat_agent import run_chat
 from langchain_groq import ChatGroq
@@ -26,9 +25,11 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from app.tools.pdf_export import export_chat_to_pdf
 from app.auth.auth import register_user, login_user, get_current_user
 from app.config import GROQ_API_KEY, GROQ_MODEL, DB_PATH
+from app.mcp_server.http_bridge import bridge_app
 
 
-MCP_URL = "http://127.0.0.1:8001"
+
+MCP_URL = "http://127.0.0.1:8000/mcp"
 
 
 app = FastAPI(
@@ -36,7 +37,8 @@ app = FastAPI(
     description="Multi-agent research system using LangGraph + Groq + MCP",
     version="3.0.0"
 )
-
+# Mount MCP bridge as sub-application — must come AFTER app is created
+app.mount("/mcp", bridge_app)
 
 security = HTTPBearer(auto_error=False)
 

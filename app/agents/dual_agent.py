@@ -6,7 +6,7 @@ import sys
 sys.path.insert(0, '.')
 from app.config import GROQ_API_KEY, GROQ_MODEL
 
-MCP_URL = "http://127.0.0.1:8001"
+MCP_URL = "http://127.0.0.1:8000/mcp"
 llm = ChatGroq(api_key=GROQ_API_KEY, model=GROQ_MODEL)
 
 FAST_SYSTEM = """You are a skilled AI assistant. Handle the task directly and completely.
