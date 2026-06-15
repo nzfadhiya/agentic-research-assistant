@@ -5,8 +5,12 @@ import sys
 sys.path.insert(0, '.')
 from app.config import GROQ_API_KEY, GROQ_MODEL
 from app.memory.database import save_chat_message, get_chat_history, save_research
+import os
 
-MCP_URL = "http://127.0.0.1:8000/mcp"
+MCP_URL = os.getenv(
+    "MCP_URL",
+    "https://agentic-research-assistant-zwwf.onrender.com/mcp"
+)
 llm = ChatGroq(api_key=GROQ_API_KEY, model=GROQ_MODEL)
 
 SYSTEM_PROMPT = """You are a friendly, expert AI assistant with two sides that work together seamlessly.

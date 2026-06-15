@@ -27,8 +27,12 @@ from app.tools.pdf_export import export_chat_to_pdf
 from app.auth.auth import register_user, login_user, get_current_user
 from app.config import GROQ_API_KEY, GROQ_MODEL, DB_PATH
 from app.mcp_server.http_bridge import bridge_app
+import os
 
-MCP_URL = "http://127.0.0.1:8000/mcp"
+MCP_URL = os.getenv(
+    "MCP_URL",
+    "https://agentic-research-assistant-zwwf.onrender.com/mcp"
+)
 
 app = FastAPI(
     title="Agentic Research Assistant",

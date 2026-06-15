@@ -1,7 +1,7 @@
 ﻿import requests
 import time
 
-API_URL = "http://127.0.0.1:8000"
+API_URL = "https://agentic-research-assistant-zwwf.onrender.com"
 results = []
 
 def check(name, condition, extra=""):
@@ -89,3 +89,69 @@ check("Delete session", r.status_code == 200)
 
 print()
 print(f"Passed {sum(results)}/{len(results)}")
+
+print("\n===== MCP TESTS =====")
+
+# MCP Root
+r = requests.get(API_URL + "/mcp/")
+print("MCP Root:", r.status_code)
+print(r.text[:500])
+
+# MCP Web Search
+r = requests.post(
+    API_URL + "/mcp/tools/web_search",
+    json={
+        "query": "what is artificial intelligence",
+        "max_results": 2
+    },
+    timeout=60
+)
+
+print("\nMCP Web Search:", r.status_code)
+print(r.text[:1000])
+
+# MCP Wikipedia
+r = requests.post(
+    API_URL + "/mcp/tools/wikipedia_fetch",
+    json={
+        "topic": "Artificial Intelligence",
+        "sentences": 2
+    },
+    timeout=60
+)
+
+print("\nMCP Wikipedia:", r.status_code)
+print(r.text[:1000])
+
+# MCP Save Memory
+r = requests.post(
+    API_URL + "/mcp/tools/save_memory",
+    json={
+        "query": "test query",
+        "summary": "test summary"
+    },
+    timeout=60
+)
+
+print("\nMCP Save Memory:", r.status_code)
+print(r.text[:1000])
+
+# Multi Agent Research Test
+try:
+    r = requests.post(
+        API_URL + "/research",
+        json={
+            "query": "how cotton is made",
+            "mode": "multi"
+        },
+        headers=headers,
+        timeout=180
+    )
+
+    print("\nMULTI MODE STATUS:", r.status_code)
+    print("MULTI MODE RESPONSE:")
+    print(r.text[:2000])
+
+except Exception as e:
+    print("\nMULTI MODE ERROR:")
+    print(e)
