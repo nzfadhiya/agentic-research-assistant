@@ -338,9 +338,10 @@ async def get_sessions(username: str = Depends(get_user_optional)):
             SELECT session_id, MIN(created_at), COUNT(*),
                    MIN(CASE WHEN role='user' THEN content END),
                    MAX(created_at)
-            FROM chat_sessions
+            FROM chat_sessions WHERE username = 'anonymous'
+            AND session_id = ?
             GROUP BY session_id ORDER BY MAX(created_at) DESC LIMIT 20
-        """)
+        """, (username or "",))
     rows = cursor.fetchall()
     conn.close()
     return {
