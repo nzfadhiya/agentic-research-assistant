@@ -157,7 +157,7 @@ async def login(req: LoginRequest):
 # ── Research endpoints ────────────────────────────────────────
 
 @app.post("/research", response_model=ResearchResponse)
-async def research(
+def research(
     request: ResearchRequest,
     username: str = Depends(get_user_optional)
 ):
@@ -204,7 +204,7 @@ async def history(username: str = Depends(get_user_optional)):
 
 
 @app.post("/chat")
-async def chat(
+def chat(
     request: ChatRequest,
     username: str = Depends(get_user_optional)
 ):
@@ -339,7 +339,7 @@ async def export_session(session_id: str):
 
 
 @app.post("/dual")
-async def dual(req: DualRequest):
+def dual(req: DualRequest):
     """
     Returns two parallel responses for the same question.
     Agent A: Fast answer from LLM knowledge.
@@ -374,7 +374,7 @@ async def clear_cache(username: str = Depends(get_user_optional)):
 
 
 @app.post("/generate-doc")
-async def generate_doc(req: DocRequest, username: str = Depends(get_user_optional)):
+def generate_doc(req: DocRequest, username: str = Depends(get_user_optional)):
     """
     Generates a PDF or DOCX document on any topic.
     Agent researches the topic and creates a structured document.

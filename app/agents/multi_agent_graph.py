@@ -52,12 +52,16 @@ def search_agent(state: MultiAgentState) -> dict:
     Gets 5 web results for the query.
     """
     print(f"[search_agent] Searching via MCP: {state['query']}")
-    r = requests.post(f"{MCP_URL}/tools/web_search", json={
-        "query": state["query"],
-        "max_results": 5
-    })
-    results = r.json().get("results", [])
-    print(f"[search_agent] Got {len(results)} results")
+    try:
+        r = requests.post(f"{MCP_URL}/tools/web_search", json={
+            "query": state["query"],
+            "max_results": 5
+        }, timeout=25)
+        results = r.json().get("results", [])
+        print(f"[search_agent] Got {len(results)} results")
+    except Exception as e:
+        print(f"[search_agent] MCP search failed: {e}")
+        results = []
     return {"search_results": results}
 
 
@@ -66,18 +70,21 @@ def wikipedia_agent(state: MultiAgentState) -> dict:
     Agent 3: Calls MCP wikipedia_fetch tool via HTTP.
     Gets background context from Wikipedia.
     """
-    # Strip year and extra words for better Wikipedia matching
     wiki_topic = state["query"].split("202")[0].strip().rstrip("applications").strip()
-    r = requests.post(f"{MCP_URL}/tools/wikipedia_fetch", json={
-        "topic": wiki_topic,
-        "sentences": 5
-    })
-    result = r.json()
-    if "error" in result:
-        print(f"[wikipedia_agent] Wikipedia error: {result['error']}")
-        return {"wiki_result": {"summary": "No Wikipedia article found.", "url": ""}}
-    print(f"[wikipedia_agent] Got Wikipedia summary ({len(result.get('summary',''))} chars)")
-    return {"wiki_result": result}
+    try:
+        r = requests.post(f"{MCP_URL}/tools/wikipedia_fetch", json={
+            "topic": wiki_topic,
+            "sentences": 5
+        }, timeout=25)
+        result = r.json()
+        if "error" in result:
+            print(f"[wikipedia_agent] Wikipedia error: {result['error']}")
+            return {"wiki_result": {"summary": "No Wikipedia article found.", "url": ""}}
+        print(f"[wikipedia_agent] Got Wikipedia summary ({len(result.get('summary',''))} chars)")
+        return {"wiki_result": result}
+    except Exception as e:
+        print(f"[wikipedia_agent] MCP call failed: {e}")
+        return {"wiki_result": {"summary": "Not available", "url": ""}}
 
 
 def critique_agent(state: MultiAgentState) -> dict:
@@ -125,9 +132,15 @@ Be factual and cite all sources as clickable markdown links using this format: [
 Example: [Top AI Trends 2026](https://example.com/article)
 Never write sources as plain text — always use the markdown link format."""
 
-    response = llm.invoke([HumanMessage(content=prompt)])
-    print(f"[critique_agent] Report generated ({len(response.content)} chars)")
-    return {"final_report": response.content}
+    try:
+        response = llm.invoke([HumanMessage(content=prompt)])
+        report = response.content
+        print(f"[critique_agent] Report generated ({len(report)} chars)")
+    except Exception as e:
+        print(f"[critique_agent] LLM call failed: {e}")
+        report = ("Sorry, I ran into an issue generating the research report. "
+                  "Please try again in a moment.")
+    return {"final_report": report}
 
 
 def save_agent(state: MultiAgentState) -> dict:
@@ -136,11 +149,14 @@ def save_agent(state: MultiAgentState) -> dict:
     Skips if result came from cache.
     """
     if not state.get("from_cache") and state.get("final_report"):
-        requests.post(f"{MCP_URL}/tools/save_memory", json={
-            "query": state["query"],
-            "summary": state["final_report"]
-        })
-        print("[save_agent] Saved to memory via MCP")
+        try:
+            requests.post(f"{MCP_URL}/tools/save_memory", json={
+                "query": state["query"],
+                "summary": state["final_report"]
+            }, timeout=25)
+            print("[save_agent] Saved to memory via MCP")
+        except Exception as e:
+            print(f"[save_agent] MCP save failed: {e}")
     else:
         print("[save_agent] Cache hit — skipping save")
     return {}
@@ -171,7 +187,6 @@ def build_multi_agent_graph():
         {"search": "search", "critique": "critique"}
     )
 
-    # search and wikipedia run, then both feed into critique
     graph.add_edge("search", "wikipedia")
     graph.add_edge("wikipedia", "critique")
     graph.add_edge("critique", "save")
@@ -206,7 +221,6 @@ def run_multi_agent(query: str) -> str:
     print(f"{'='*50}")
     print(result["final_report"])
     try:
-        from app.memory.database import save_research
         save_research(query, result["final_report"])
     except Exception as e:
         print(f"[multi_agent] Cache save failed: {e}")
