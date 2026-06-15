@@ -8,9 +8,6 @@ from app.tools.search import web_search
 from app.memory.database import save_research, search_history, get_history
 import wikipedia
 
-# MCP Server package
-# server.py    — real MCP SDK server (stdio protocol)
-# http_bridge.py — HTTP wrapper so agents can call MCP tools via REST
 # ── Create MCP server ─────────────────────────────────────────
 server = Server("research-tools")
 

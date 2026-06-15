@@ -120,7 +120,9 @@ Write a structured report with:
 5. Conclusion
 6. Sources cited
 
-Be factual, cite sources by title."""
+Be factual and cite all sources as clickable markdown links using this format: [Article Title](full_url)
+Example: [Top AI Trends 2026](https://example.com/article)
+Never write sources as plain text — always use the markdown link format."""
 
     response = llm.invoke([HumanMessage(content=prompt)])
     print(f"[critique_agent] Report generated ({len(response.content)} chars)")
@@ -202,5 +204,10 @@ def run_multi_agent(query: str) -> str:
     print("FINAL REPORT:")
     print(f"{'='*50}")
     print(result["final_report"])
+    try:
+        from app.memory.database import save_research
+        save_research(query, result["final_report"])
+    except Exception as e:
+        print(f"[multi_agent] Cache save failed: {e}")
 
     return result["final_report"]

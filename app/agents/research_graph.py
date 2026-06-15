@@ -76,7 +76,8 @@ Write a summary with:
 2. Main themes
 3. Conclusion
 
-Be factual and cite the sources by title."""
+Be factual and cite sources as clickable markdown links using this format: [Article Title](full_url)
+Example: According to [AI Trends 2026](https://example.com/article), ..."""
 
     response = llm.invoke([HumanMessage(content=prompt)])
     print(f"[summarise_node] Summary generated ({len(response.content)} chars)")
@@ -162,5 +163,10 @@ def run_research(query: str) -> str:
     print("FINAL SUMMARY:")
     print(f"{'='*50}")
     print(result["summary"])
+    try:
+        from app.memory.database import save_research
+        save_research(query, result["summary"])
+    except Exception as e:
+        print(f"[research_graph] Cache save failed: {e}")
 
     return result["summary"]

@@ -4,8 +4,10 @@ __pycache__/
 *.pyc
 memory/
 outputs/
+.streamlit/
 debug_test.py
 debug_sessions.py
 test_groq.py
+write_app.py
 write_streamlit.py
 *.db
