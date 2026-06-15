@@ -58,6 +58,7 @@ class LoginRequest(BaseModel):
 class ResearchRequest(BaseModel):
     query: str
     mode: str = "multi"
+    session_id: str = "global-research"  # add this
 
 
 class ResearchResponse(BaseModel):
@@ -177,11 +178,14 @@ def research(
         else:
             summary = run_research(request.query)
             
-
         try:
             save_research(query=request.query, summary=summary, username=username or "anonymous")
         except Exception as cache_err:
             print(f"[research] Cache save failed: {cache_err}")
+
+        # ← ADD THESE TWO LINES right here:
+        save_chat_message(request.session_id, "user", request.query, username or "anonymous")
+        save_chat_message(request.session_id, "assistant", summary, username or "anonymous")
 
         return ResearchResponse(
             query=request.query,
@@ -193,6 +197,7 @@ def research(
         print("========== ERROR ==========")
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.get("/history")
 async def history(username: str = Depends(get_user_optional)):
