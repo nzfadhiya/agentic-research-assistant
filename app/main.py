@@ -6,6 +6,7 @@ from typing import Optional
 import sqlite3
 import requests
 import sys
+import traceback
 sys.path.insert(0, '.')
 from app.agents.research_graph import run_research
 from app.agents.multi_agent_graph import run_multi_agent
@@ -27,17 +28,14 @@ from app.auth.auth import register_user, login_user, get_current_user
 from app.config import GROQ_API_KEY, GROQ_MODEL, DB_PATH
 from app.mcp_server.http_bridge import bridge_app
 
-
-
 MCP_URL = "http://127.0.0.1:8000/mcp"
-
 
 app = FastAPI(
     title="Agentic Research Assistant",
     description="Multi-agent research system using LangGraph + Groq + MCP",
     version="3.0.0"
 )
-# Mount MCP bridge as sub-application — must come AFTER app is created
+
 app.mount("/mcp", bridge_app)
 
 security = HTTPBearer(auto_error=False)
@@ -169,12 +167,16 @@ async def research(
     casual_signals = ["hi", "hello", "how are", "what time", "who are you", "thanks"]
     is_casual = any(request.query.lower().strip().startswith(s) for s in casual_signals)
     actual_mode = "simple" if is_casual else request.mode
-
+    print("========== RESEARCH START ==========")
+    print("Query:", request.query)
+    print("Mode:", actual_mode)
     try:
         if actual_mode == "multi":
+            print("Calling run_multi_agent()")
             summary = run_multi_agent(request.query)
         else:
             summary = run_research(request.query)
+            
 
         try:
             save_research(query=request.query, summary=summary, username=username or "anonymous")
@@ -188,6 +190,8 @@ async def research(
             status="success"
         )
     except Exception as e:
+        print("========== ERROR ==========")
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/history")
