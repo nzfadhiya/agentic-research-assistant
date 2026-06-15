@@ -182,8 +182,27 @@ def research(
     query_with_context = request.query
     if history_context:
         query_with_context = f"Conversation so far:\n{history_context}\n\nNew request: {request.query}"
+
+    memory_signals = [
+        "what was my name", "what is my name", "my name",
+        "what did i say", "what did you say", "you just said",
+        "short version", "summarize what you", "summarize above",
+        "give a short version", "from above", "you mentioned",
+        "what we discussed", "earlier you", "previous answer",
+    ]
+    is_memory_query = any(sig in request.query.lower() for sig in memory_signals)
+
     try:
-        if actual_mode == "multi":
+        if is_memory_query and history_context:
+            from langchain_groq import ChatGroq
+            from langchain_core.messages import HumanMessage, SystemMessage
+            llm_direct = ChatGroq(api_key=GROQ_API_KEY, model=GROQ_MODEL)
+            direct_response = llm_direct.invoke([
+                SystemMessage(content="You are a helpful assistant. Answer using only the conversation history provided. Do not search the web."),
+                HumanMessage(content=query_with_context)
+            ])
+            summary = direct_response.content
+        elif actual_mode == "multi":
             print("Calling run_multi_agent()")
             summary = run_multi_agent(query_with_context)
         else:
@@ -258,14 +277,14 @@ async def chat_stream(request: ChatRequest):
     save_chat_message(request.session_id, "user", request.message)
 
 
-    messages = []
+    from app.agents.chat_agent import SYSTEM_PROMPT
+    messages = [SystemMessage(content=SYSTEM_PROMPT)]
     for msg in history:
         if msg["role"] == "user":
             messages.append(HumanMessage(content=msg["content"]))
         else:
             messages.append(AIMessage(content=msg["content"]))
     messages.append(HumanMessage(content=request.message))
-
 
     full_response = []
 
