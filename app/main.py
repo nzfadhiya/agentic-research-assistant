@@ -171,13 +171,24 @@ def research(
     print("========== RESEARCH START ==========")
     print("Query:", request.query)
     print("Mode:", actual_mode)
+    # In /research endpoint, before calling run_multi_agent or run_research, add:
+    history = get_chat_history(request.session_id)
+    history_context = ""
+    if history:
+        history_context = "\n".join([
+            f"{m['role'].upper()}: {m['content'][:300]}"
+            for m in history[-6:]
+        ])
+    query_with_context = request.query
+    if history_context:
+        query_with_context = f"Conversation so far:\n{history_context}\n\nNew request: {request.query}"
     try:
         if actual_mode == "multi":
             print("Calling run_multi_agent()")
-            summary = run_multi_agent(request.query)
+            summary = run_multi_agent(query_with_context)
         else:
-            summary = run_research(request.query)
-            
+            summary = run_research(query_with_context)
+
         try:
             save_research(query=request.query, summary=summary, username=username or "anonymous")
         except Exception as cache_err:

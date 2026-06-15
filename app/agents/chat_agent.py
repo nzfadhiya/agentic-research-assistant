@@ -61,7 +61,8 @@ def auto_classify(user_message: str, chat_history: list) -> str:
         # Casual questions
         "what time", "what day", "what date", "what is today",
         "what is tomorrow", "what was yesterday", "what will tomorrow",
-        "can i kill you", "can you die", "are you alive",
+        "can i kill you", "can you die", "are you alive","how to kill",
+        "can i kill","kill humans","kill you",
         # Short unclear inputs
         "da", "na", "ya", "nah", "yep", "nope", "hmm", "ugh",
     ]
