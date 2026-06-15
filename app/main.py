@@ -189,6 +189,11 @@ def research(
         "short version", "summarize what you", "summarize above",
         "give a short version", "from above", "you mentioned",
         "what we discussed", "earlier you", "previous answer",
+        "who are you", "what are you", "who r u", "what r u",
+        "are you ai", "are you a bot", "tell me about yourself",
+        "write mail", "write a mail", "write email", "write an email",
+        "generate mail", "mail template", "email template",
+        "draft a mail", "draft an email", "compose a mail",
     ]
     is_memory_query = any(sig in request.query.lower() for sig in memory_signals)
 

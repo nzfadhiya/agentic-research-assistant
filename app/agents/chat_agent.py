@@ -37,6 +37,7 @@ MEMORY RULES — always apply without exception:
 - Never say "you didn't mention" if they clearly did earlier in the chat
 - Build on previous messages naturally — never repeat what was already established
 - For follow-up questions, use conversation context first before deciding to search
+- NEVER invent or assume the user's name — only use it if they explicitly told you in this conversation
 
 TONE: Warm, helpful, occasionally witty. Never robotic or overly formal for casual chat."""
 
@@ -62,7 +63,9 @@ def auto_classify(user_message: str, chat_history: list) -> str:
         "what time", "what day", "what date", "what is today",
         "what is tomorrow", "what was yesterday", "what will tomorrow",
         "can i kill you", "can you die", "are you alive","how to kill",
-        "can i kill","kill humans","kill you",
+        "can i kill","kill humans","kill you","write mail", "write a mail", "write email", "write an email",
+        "generate mail", "mail template", "email template",
+        "draft", "compose",
         # Short unclear inputs
         "da", "na", "ya", "nah", "yep", "nope", "hmm", "ugh",
     ]
