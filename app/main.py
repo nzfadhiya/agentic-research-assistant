@@ -180,7 +180,7 @@ def research(
             for m in history[-6:]
         ])
     query_with_context = request.query
-    if history_context:
+    if history_context and not is_memory_query:
         query_with_context = f"Conversation so far:\n{history_context}\n\nNew request: {request.query}"
 
     memory_signals = [
