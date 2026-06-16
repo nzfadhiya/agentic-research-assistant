@@ -165,9 +165,16 @@ def research(
     if not request.query.strip():
         raise HTTPException(status_code=400, detail="Query cannot be empty")
 
-    casual_signals = ["hi", "hello", "how are", "what time", "who are you", "thanks"]
+    casual_signals = ["hi", "hello", "hey", "how are", "what time", "who are you", "thanks", "bye", "ok", "okay"]
     is_casual = any(request.query.lower().strip().startswith(s) for s in casual_signals)
-    actual_mode = "simple" if is_casual else request.mode
+    if is_casual:
+        return ResearchResponse(
+            query=request.query,
+            summary="Hi there! For casual chat, please use Auto mode — it handles greetings and conversation much better than research mode.",
+            mode="chat",
+            status="success"
+        )
+    actual_mode = request.mode
     print("========== RESEARCH START ==========")
     print("Query:", request.query)
     print("Mode:", actual_mode)
