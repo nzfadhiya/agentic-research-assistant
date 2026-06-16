@@ -295,7 +295,7 @@ with st.sidebar:
 
         mode = "chat"
 
-        st.caption("AI picks best approach automatically.")
+        st.caption("Recommended — AI picks chat, research, or quick answer automatically.")
 
 
 
