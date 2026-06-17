@@ -302,9 +302,7 @@ with st.sidebar:
     if st.button("Clear screen", use_container_width=True):
         st.session_state.messages = []
         st.session_state.dual_result = None
-        st.session_state.last_loaded_sid = ""  # force reload from DB on next render
         st.rerun()
-
 
 
     if st.button("Export chat", use_container_width=True):
