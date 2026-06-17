@@ -175,22 +175,11 @@ def research(
             status="success"
         )
     actual_mode = request.mode
-    
     print("========== RESEARCH START ==========")
     print("Query:", request.query)
     print("Mode:", actual_mode)
-    # In /research endpoint, before calling run_multi_agent or run_research, add:
-    history = get_chat_history(request.session_id)
-    history_context = ""
-    if history:
-        history_context = "\n".join([
-            f"{m['role'].upper()}: {m['content'][:300]}"
-            for m in history[-6:]
-        ])
-    query_with_context = request.query
-    if history_context and not is_memory_query:
-        query_with_context = f"Conversation so far:\n{history_context}\n\nNew request: {request.query}"
 
+    # define is_memory_query FIRST
     memory_signals = [
         "what was my name", "what is my name", "my name",
         "what did i say", "what did you say", "you just said",
@@ -204,6 +193,19 @@ def research(
         "draft a mail", "draft an email", "compose a mail",
     ]
     is_memory_query = any(sig in request.query.lower() for sig in memory_signals)
+
+    # NOW build history context
+    history = get_chat_history(request.session_id)
+    history_context = ""
+    if history:
+        history_context = "\n".join([
+            f"{m['role'].upper()}: {m['content'][:300]}"
+            for m in history[-6:]
+        ])
+
+    query_with_context = request.query
+    if history_context and not is_memory_query:
+        query_with_context = f"Conversation so far:\n{history_context}\n\nNew request: {request.query}"
 
     try:
         if is_memory_query and history_context:
@@ -226,7 +228,6 @@ def research(
         except Exception as cache_err:
             print(f"[research] Cache save failed: {cache_err}")
 
-        # ← ADD THESE TWO LINES right here:
         save_chat_message(request.session_id, "user", request.query, username or "anonymous")
         save_chat_message(request.session_id, "assistant", summary, username or "anonymous")
 
@@ -240,8 +241,7 @@ def research(
         print("========== ERROR ==========")
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
-
-
+    
 @app.get("/history")
 async def history(username: str = Depends(get_user_optional)):
     records = get_history(limit=10, username=username)

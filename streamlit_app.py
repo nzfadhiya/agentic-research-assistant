@@ -50,14 +50,9 @@ st.query_params["s"] = st.session_state.session_id
 
 
 def auth_headers():
-
     if st.session_state.token:
-
         return {"Authorization": "Bearer " + st.session_state.token}
-
     return {}
-
-
 
 def refresh_sessions():
     try:
@@ -71,18 +66,11 @@ def load_session(sid):
     try:
 
         r = requests.get(API_URL + "/chat/" + sid + "/history", headers=auth_headers(), timeout=10)
-
         if r.status_code == 200:
-
             return [{"role": m["role"], "content": m["content"]} for m in r.json().get("messages", [])]
-
     except:
-
         pass
-
     return []
-
-
 
 if st.session_state.get("last_loaded_sid") != st.session_state.session_id:
     st.session_state.last_loaded_sid = st.session_state.session_id
@@ -95,26 +83,15 @@ if st.session_state.get("last_loaded_sid") != st.session_state.session_id:
     except:
         pass
 
-
-
 if not st.session_state.sessions_list and st.session_state.logged_in:
-
     refresh_sessions()
-
-
 
 # -- LOGIN PAGE ------------------------------------------------
 
 if not st.session_state.logged_in:
-
     st.markdown("## Agentic Research Assistant")
-
     st.caption("LangGraph + Groq + MCP")
-
     st.divider()
-
-
-
     col1, col2, col3 = st.columns([1, 2, 1])
 
     with col2:
