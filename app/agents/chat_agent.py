@@ -89,11 +89,10 @@ Conversation history:
 
 User message: "{user_message}"
 
-RESEARCH: ONLY for explicit requests like "comprehensive report", "deep analysis", "research on", "detailed study of"
-SIMPLE: factual lookup needed, specific data, current events (e.g. "what is the capital of France", "latest iPhone price")
-CHAT: everything else — explanations, how-to, definitions, casual questions, follow-ups, writing tasks (e.g. "what is ai", "how does ML work", "explain quantum computing", "who can be data analyst")
+RESEARCH: ONLY when user explicitly asks for "report", "analysis", "research", "comprehensive", "in-depth study"
+SIMPLE: needs a web search for current facts, specific data, company info, recent events (e.g. "what is palantir", "latest AI news", "quantum computing")
+CHAT: everything else — greetings, names, casual talk, explanations, follow-ups, writing tasks, short questions
 
-When in doubt, classify as CHAT. Only use RESEARCH for explicit report requests.
 Reply ONE word only: RESEARCH, SIMPLE, or CHAT"""
 
     response = llm.invoke([HumanMessage(content=prompt)])
