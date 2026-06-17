@@ -165,7 +165,10 @@ def research(
     if not request.query.strip():
         raise HTTPException(status_code=400, detail="Query cannot be empty")
 
-    casual_signals = ["hi", "hello", "hey", "how are", "what time", "who are you", "thanks", "bye", "ok", "okay"]
+    casual_signals = ["hi", "hello", "hey", "helo", "hii", "hiii", "how are", "what time", 
+                  "who are you", "thanks", "bye", "ok", "okay", "sup", "yo", "good morning",
+                  "good evening", "good night","who are you","what","what happened","so what","You’re lying",
+]
     is_casual = any(request.query.lower().strip().startswith(s) for s in casual_signals)
     if is_casual:
         return ResearchResponse(
