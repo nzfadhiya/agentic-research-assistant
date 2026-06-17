@@ -2,13 +2,7 @@
 import requests
 import uuid
 import os
-API_URL = os.getenv(
-
-    "API_URL",
-
-    "https://agentic-research-assistant-zwwf.onrender.com"
-
-)
+API_URL = os.environ.get("API_URL", "https://agentic-research-assistant-zwwf.onrender.com")
 
 st.set_page_config(page_title="Agentic Research Assistant", layout="wide", initial_sidebar_state="expanded")
 defaults = {
