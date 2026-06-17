@@ -175,6 +175,7 @@ def research(
             status="success"
         )
     actual_mode = request.mode
+    
     print("========== RESEARCH START ==========")
     print("Query:", request.query)
     print("Mode:", actual_mode)
