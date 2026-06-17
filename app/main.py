@@ -204,8 +204,13 @@ def research(
         ])
 
     query_with_context = request.query
-    if history_context and not is_memory_query:
+    # Only inject history for explicit follow-up questions
+    followup_signals = ["above", "previous", "earlier", "that", "this topic", "you said", "what you"]
+    is_followup = any(sig in request.query.lower() for sig in followup_signals)
+    if history_context and (is_memory_query or is_followup):
         query_with_context = f"Conversation so far:\n{history_context}\n\nNew request: {request.query}"
+    #if history_context and not is_memory_query:
+        #query_with_context = f"Conversation so far:\n{history_context}\n\nNew request: {request.query}"
 
     try:
         if is_memory_query and history_context:

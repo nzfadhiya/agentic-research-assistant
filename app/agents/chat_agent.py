@@ -67,7 +67,8 @@ def auto_classify(user_message: str, chat_history: list) -> str:
         "generate mail", "mail template", "email template",
         "draft", "compose",
         # Short unclear inputs
-        "da", "na", "ya", "nah", "yep", "nope", "hmm", "ugh",
+        "da", "na", "ya", "nah", "yep", "nope", "hmm", "ugh","bla bla", "blabla", "bla",
+        "ai?", "what?", "who?",
     ]
     for pattern in casual_patterns:
         if msg_lower == pattern or msg_lower.startswith(pattern + " ") or msg_lower.startswith(pattern + ","):
@@ -88,10 +89,11 @@ Conversation history:
 
 User message: "{user_message}"
 
-RESEARCH: needs comprehensive analysis, deep report, trends (e.g. "analyze AI in healthcare 2026", "comprehensive report on climate")
-SIMPLE: needs quick factual answer (e.g. "what is photosynthesis", "define blockchain", "how to cook pasta")
-CHAT: casual, greeting, follow-up, writing task, short question (e.g. "hi", "explain the risks you mentioned", "write an email")
+RESEARCH: ONLY for explicit requests like "comprehensive report", "deep analysis", "research on", "detailed study of"
+SIMPLE: factual lookup needed, specific data, current events (e.g. "what is the capital of France", "latest iPhone price")
+CHAT: everything else — explanations, how-to, definitions, casual questions, follow-ups, writing tasks (e.g. "what is ai", "how does ML work", "explain quantum computing", "who can be data analyst")
 
+When in doubt, classify as CHAT. Only use RESEARCH for explicit report requests.
 Reply ONE word only: RESEARCH, SIMPLE, or CHAT"""
 
     response = llm.invoke([HumanMessage(content=prompt)])
