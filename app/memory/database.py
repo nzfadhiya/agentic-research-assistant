@@ -4,35 +4,50 @@ import sys
 sys.path.insert(0, '.')
 from app.config import DB_PATH
 
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+def get_conn():
+    if DATABASE_URL:
+        import psycopg2
+        return psycopg2.connect(DATABASE_URL)
+    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
+    return sqlite3.connect(DB_PATH)
+
+def ph():
+    """Placeholder — %s for PostgreSQL, ? for SQLite"""
+    return "%s" if DATABASE_URL else "?"
+
+def serial():
+    """Primary key type"""
+    return "SERIAL" if DATABASE_URL else "INTEGER"
+
+def autoincrement():
+    return "" if DATABASE_URL else "AUTOINCREMENT"
 
 def init_db():
-    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_conn()
     cursor = conn.cursor()
-
-    cursor.execute("""
+    cursor.execute(f"""
         CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id {serial()} PRIMARY KEY {autoincrement()},
             username TEXT UNIQUE NOT NULL,
             email TEXT UNIQUE NOT NULL,
             password_hash TEXT NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
-
-    cursor.execute("""
+    cursor.execute(f"""
         CREATE TABLE IF NOT EXISTS research_history (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id {serial()} PRIMARY KEY {autoincrement()},
             username TEXT DEFAULT 'anonymous',
             query TEXT NOT NULL,
             summary TEXT NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
-
-    cursor.execute("""
+    cursor.execute(f"""
         CREATE TABLE IF NOT EXISTS chat_sessions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id {serial()} PRIMARY KEY {autoincrement()},
             username TEXT DEFAULT 'anonymous',
             session_id TEXT NOT NULL,
             role TEXT NOT NULL,
@@ -40,98 +55,90 @@ def init_db():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
-
     conn.commit()
     conn.close()
-    print("[db] Database ready at", DB_PATH)
-
+    print("[db] Database ready at", "Supabase" if DATABASE_URL else DB_PATH)
 
 def save_research(query: str, summary: str, username: str = "anonymous"):
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_conn()
     cursor = conn.cursor()
     cursor.execute(
-        "INSERT INTO research_history (username, query, summary) VALUES (?, ?, ?)",
+        f"INSERT INTO research_history (username, query, summary) VALUES ({ph()}, {ph()}, {ph()})",
         (username, query, summary)
     )
     conn.commit()
     conn.close()
 
-
 def get_history(limit: int = 10, username: str = None) -> list:
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_conn()
     cursor = conn.cursor()
     if username:
         cursor.execute(
-            "SELECT query, summary, created_at FROM research_history WHERE username = ? ORDER BY created_at DESC LIMIT ?",
+            f"SELECT query, summary, created_at FROM research_history WHERE username = {ph()} ORDER BY created_at DESC LIMIT {ph()}",
             (username, limit)
         )
     else:
         cursor.execute(
-            "SELECT query, summary, created_at FROM research_history ORDER BY created_at DESC LIMIT ?",
+            f"SELECT query, summary, created_at FROM research_history ORDER BY created_at DESC LIMIT {ph()}",
             (limit,)
         )
     rows = cursor.fetchall()
     conn.close()
     return [{"query": r[0], "summary": r[1], "created_at": r[2]} for r in rows]
 
-
 def search_history(query: str, username: str = None) -> list:
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_conn()
     cursor = conn.cursor()
     if username:
         cursor.execute(
-            "SELECT query, summary, created_at FROM research_history WHERE username = ? AND query LIKE ? ORDER BY created_at DESC LIMIT 3",
+            f"SELECT query, summary, created_at FROM research_history WHERE username = {ph()} AND query LIKE {ph()} ORDER BY created_at DESC LIMIT 3",
             (username, f"%{query}%")
         )
     else:
         cursor.execute(
-            "SELECT query, summary, created_at FROM research_history WHERE query LIKE ? ORDER BY created_at DESC LIMIT 3",
+            f"SELECT query, summary, created_at FROM research_history WHERE query LIKE {ph()} ORDER BY created_at DESC LIMIT 3",
             (f"%{query}%",)
         )
     rows = cursor.fetchall()
     conn.close()
     return [{"query": r[0], "summary": r[1], "created_at": r[2]} for r in rows]
 
-
 def save_chat_message(session_id: str, role: str, content: str, username: str = "anonymous"):
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_conn()
     cursor = conn.cursor()
     cursor.execute(
-        "INSERT INTO chat_sessions (username, session_id, role, content) VALUES (?, ?, ?, ?)",
+        f"INSERT INTO chat_sessions (username, session_id, role, content) VALUES ({ph()}, {ph()}, {ph()}, {ph()})",
         (username, session_id, role, content)
     )
     conn.commit()
     conn.close()
 
-
 def get_chat_history(session_id: str) -> list:
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_conn()
     cursor = conn.cursor()
     cursor.execute(
-        "SELECT role, content, created_at FROM chat_sessions WHERE session_id = ? ORDER BY created_at ASC",
+        f"SELECT role, content, created_at FROM chat_sessions WHERE session_id = {ph()} ORDER BY created_at ASC",
         (session_id,)
     )
     rows = cursor.fetchall()
     conn.close()
     return [{"role": r[0], "content": r[1], "created_at": r[2]} for r in rows]
 
-
 def clear_chat_session(session_id: str):
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_conn()
     cursor = conn.cursor()
-    cursor.execute("DELETE FROM chat_sessions WHERE session_id = ?", (session_id,))
+    cursor.execute(f"DELETE FROM chat_sessions WHERE session_id = {ph()}", (session_id,))
     conn.commit()
     conn.close()
 
-
 def get_user_sessions(username: str = None) -> list:
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_conn()
     cursor = conn.cursor()
     if username:
-        cursor.execute("""
+        cursor.execute(f"""
             SELECT session_id, MIN(created_at), COUNT(*),
                    MIN(CASE WHEN role='user' THEN content END)
-            FROM chat_sessions WHERE username = ?
+            FROM chat_sessions WHERE username = {ph()}
             GROUP BY session_id ORDER BY MIN(created_at) DESC LIMIT 20
         """, (username,))
     else:
@@ -153,24 +160,22 @@ def get_user_sessions(username: str = None) -> list:
         for r in rows
     ]
 
-
 def clear_research_cache(username: str = None):
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_conn()
     cursor = conn.cursor()
     if username:
-        cursor.execute("DELETE FROM research_history WHERE username = ?", (username,))
+        cursor.execute(f"DELETE FROM research_history WHERE username = {ph()}", (username,))
     else:
         cursor.execute("DELETE FROM research_history")
     conn.commit()
     conn.close()
 
-
 def get_cache_stats(username: str = None) -> dict:
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_conn()
     cursor = conn.cursor()
     if username:
         cursor.execute(
-            "SELECT COUNT(*), MIN(created_at), MAX(created_at) FROM research_history WHERE username = ?",
+            f"SELECT COUNT(*), MIN(created_at), MAX(created_at) FROM research_history WHERE username = {ph()}",
             (username,)
         )
     else:
