@@ -3,11 +3,11 @@ from fastapi.responses import FileResponse, StreamingResponse, JSONResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from typing import Optional
-import sqlite3
 import requests
 import sys
 import traceback
 sys.path.insert(0, '.')
+from app.memory.database import get_conn, ph
 from app.agents.research_graph import run_research
 from app.agents.multi_agent_graph import run_multi_agent
 from app.agents.chat_agent import run_chat
@@ -336,23 +336,23 @@ async def clear_chat(session_id: str):
 
 @app.get("/sessions")
 async def get_sessions(username: str = Depends(get_user_optional)):
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_conn()
     cursor = conn.cursor()
     if username and username != "anonymous":
-        cursor.execute("""
+        cursor.execute(f"""
             SELECT session_id, MIN(created_at), COUNT(*),
                    MIN(CASE WHEN role='user' THEN content END),
                    MAX(created_at)
-            FROM chat_sessions WHERE username = ?
+            FROM chat_sessions WHERE username = {ph()}
             GROUP BY session_id ORDER BY MAX(created_at) DESC LIMIT 20
         """, (username,))
     else:
-        cursor.execute("""
+        cursor.execute(f"""
             SELECT session_id, MIN(created_at), COUNT(*),
                    MIN(CASE WHEN role='user' THEN content END),
                    MAX(created_at)
             FROM chat_sessions WHERE username = 'anonymous'
-            AND session_id = ?
+            AND session_id = {ph()}
             GROUP BY session_id ORDER BY MAX(created_at) DESC LIMIT 20
         """, (username or "",))
     rows = cursor.fetchall()
