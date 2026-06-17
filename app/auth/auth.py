@@ -2,10 +2,9 @@ from datetime import datetime, timedelta
 from typing import Optional
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-import sqlite3
 import sys
 sys.path.insert(0, '.')
-from app.config import DB_PATH
+from app.memory.database import get_conn, ph
 
 SECRET_KEY = "agentic-research-2026-secret-key"
 ALGORITHM = "HS256"
@@ -56,23 +55,22 @@ def register_user(username: str, email: str, password: str) -> dict:
     if "@" not in email:
         return {"success": False, "error": "Invalid email address"}
 
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_conn()
     cursor = conn.cursor()
 
     # Check username taken
-    cursor.execute("SELECT id FROM users WHERE username = ?", (username,))
+    cursor.execute(f"SELECT id FROM users WHERE username = {ph()}", (username,))
     if cursor.fetchone():
         conn.close()
         return {"success": False, "error": "Username already taken. Choose another."}
 
     # Check email already registered — same email cannot register again
-    cursor.execute("SELECT id FROM users WHERE email = ?", (email,))
+    cursor.execute(f"SELECT id FROM users WHERE email = {ph()}", (email,))
     if cursor.fetchone():
         conn.close()
         return {"success": False, "error": "Email already registered. Please login instead."}
 
-    cursor.execute(
-        "INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)",
+    cursor.execute(f"INSERT INTO users (username, email, password_hash) VALUES ({ph()}, {ph()}, {ph()})",
         (username, email, hash_password(password))
     )
     conn.commit()
@@ -88,10 +86,9 @@ def login_user(username: str, password: str) -> dict:
     - Unknown username = fail
     """
     username = username.strip().lower()
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_conn()
     cursor = conn.cursor()
-    cursor.execute(
-        "SELECT password_hash FROM users WHERE username = ?", (username,)
+    cursor.execute(f"SELECT password_hash FROM users WHERE username = {ph()}", (username,)
     )
     row = cursor.fetchone()
     conn.close()
