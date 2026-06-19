@@ -6,7 +6,7 @@ A multi-agent AI research assistant built with LangGraph, Groq, and MCP. Support
 🔗 **API:** [agentic-research-assistant-zwwf.onrender.com](https://agentic-research-assistant-zwwf.onrender.com)  
 📦 **GitHub:** [nzfadhiya/agentic-research-assistant](https://github.com/nzfadhiya/agentic-research-assistant)
 
-![CI/CD](https://github.com/nzfadhiya/agentic-research-assistant/actions/workflows/ci.yml/badge.svg)
+
 
 ---
 
